@@ -28,24 +28,21 @@ jobs:
         run: |
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Find Gradle project
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Show project structure
         working-directory: project
         run: |
-          echo "Searching for gradlew..."
-          find . -name gradlew -type f -print
+          echo "Project structure:"
+          find . -maxdepth 3 -type f | sort
 
       - name: Build APK
         working-directory: project
         run: |
-          GRADLEW=$(find . -name gradlew -type f | head -n 1)
-          if [ -z "$GRADLEW" ]; then
-            echo "ERROR: gradlew not found!"
-            exit 1
-          fi
-          PROJECT_DIR=$(dirname "$GRADLEW")
-          cd "$PROJECT_DIR"
-          chmod +x gradlew
-          ./gradlew :app:assembleDebug
+          gradle :app:assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
