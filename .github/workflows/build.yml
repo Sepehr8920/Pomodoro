@@ -28,17 +28,22 @@ jobs:
         run: |
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Check project files
+      - name: Find Gradle project
         working-directory: project
         run: |
-          echo "Project files:"
-          ls -la
-          echo "App directory:"
-          ls -la app || true
+          echo "Searching for gradlew..."
+          find . -name gradlew -type f -print
 
       - name: Build APK
         working-directory: project
         run: |
+          GRADLEW=$(find . -name gradlew -type f | head -n 1)
+          if [ -z "$GRADLEW" ]; then
+            echo "ERROR: gradlew not found!"
+            exit 1
+          fi
+          PROJECT_DIR=$(dirname "$GRADLEW")
+          cd "$PROJECT_DIR"
           chmod +x gradlew
           ./gradlew :app:assembleDebug
 
@@ -46,4 +51,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Pomodoro-APK
-          path: project/app/build/outputs/apk/debug/app-debug.apk
+          path: project/**/app/build/outputs/apk/debug/app-debug.apk
